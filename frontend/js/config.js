@@ -1,0 +1,70 @@
+/**
+ * Tailwind CSS configuration — must be loaded before tailwind CDN processes styles.
+ */
+tailwind.config = {
+    darkMode: "class",
+    theme: {
+        extend: {
+            colors: {
+                "on-primary-fixed": "#04154e",
+                "on-error-container": "#93000a",
+                "surface": "#f7f9fb",
+                "error-container": "#ffdad6",
+                "primary-fixed": "#dde1ff",
+                "secondary-fixed-dim": "#ffb598",
+                "inverse-primary": "#b8c4ff",
+                "tertiary-fixed": "#dae1ff",
+                "primary-fixed-dim": "#b8c4ff",
+                "surface-container-high": "#e6e8ea",
+                "surface-container": "#eceef0",
+                "tertiary-container": "#00184a",
+                "secondary-fixed": "#ffdbce",
+                "on-secondary-fixed": "#370e00",
+                "inverse-on-surface": "#eff1f3",
+                "tertiary-fixed-dim": "#b3c5ff",
+                "tertiary": "#000004",
+                "surface-container-highest": "#e0e3e5",
+                "on-surface-variant": "#454650",
+                "on-secondary-container": "#5a1c00",
+                "on-tertiary-fixed-variant": "#003fa4",
+                "outline": "#767681",
+                "secondary": "#a63b00",
+                "primary": "#000107",
+                "on-secondary": "#ffffff",
+                "surface-container-low": "#f2f4f6",
+                "outline-variant": "#c6c5d1",
+                "error": "#ba1a1a",
+                "on-tertiary-container": "#457dff",
+                "on-background": "#191c1e",
+                "primary-container": "#05164e",
+                "surface-tint": "#4e5b94",
+                "secondary-container": "#fd6b26",
+                "surface-bright": "#f7f9fb",
+                "surface-container-lowest": "#ffffff",
+                "on-tertiary-fixed": "#001849",
+                "on-primary-fixed-variant": "#36437b",
+                "on-tertiary": "#ffffff",
+                "surface-dim": "#d8dadc",
+                "on-primary-container": "#7481bd",
+                "on-surface": "#191c1e",
+                "inverse-surface": "#2d3133",
+                "on-primary": "#ffffff",
+                "background": "#f7f9fb",
+                "on-secondary-fixed-variant": "#7f2b00",
+                "on-error": "#ffffff",
+                "surface-variant": "#e0e3e5"
+            },
+            fontFamily: {
+                "headline": ["Manrope"],
+                "body": ["Inter"],
+                "label": ["Inter"]
+            },
+            borderRadius: {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+        },
+    },
+};

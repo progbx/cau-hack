@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CAU AI Vision Analysis Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="js/config.js"></script>
+<link rel="stylesheet" href="css/styles.css"/>
+<script src="https://unpkg.com/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+</head>
+<body class="bg-surface dark:bg-slate-900 font-body text-on-surface dark:text-gray-200 flex min-h-screen overflow-hidden">
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container"></div>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<aside class="fixed left-0 top-0 h-full z-50 flex flex-col py-8 bg-primary-container dark:bg-[#02081a] text-white w-64 shadow-2xl">
+    <div class="px-6 mb-10">
+        <div class="text-lg font-extrabold text-white uppercase tracking-widest font-headline">CAU AI VISION</div>
+        <div class="text-xs text-blue-100/60 font-medium mt-1">Clinical Intelligence</div>
+    </div>
+    <div class="px-4 mb-8">
+        <button onclick="newAnalysis()" class="w-full bg-secondary-container text-on-secondary-container py-3 px-6 rounded-full font-headline font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95">
+            <span class="material-symbols-outlined text-lg">add</span>
+            New Analysis
+        </button>
+    </div>
+    <nav class="flex-1 space-y-1" id="sidebar-nav">
+        <a href="#" data-page="dashboard" class="nav-link flex items-center gap-3 px-6 py-3 text-blue-100/70 hover:text-white hover:bg-white/5 transition-all duration-300 font-headline font-semibold text-base">
+            <span class="material-symbols-outlined">dashboard</span> Dashboard
+        </a>
+        <a href="#" data-page="analysis" class="nav-link flex items-center gap-3 px-6 py-3 text-blue-100/70 hover:text-white hover:bg-white/5 transition-all duration-300 font-headline font-semibold text-base">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">magnification_small</span> Biopsy Viewer
+        </a>
+        <a href="#" data-page="archive" class="nav-link flex items-center gap-3 px-6 py-3 text-blue-100/70 hover:text-white hover:bg-white/5 transition-all duration-300 font-headline font-semibold text-base">
+            <span class="material-symbols-outlined">folder_shared</span> Patient Archive
+        </a>
+        <a href="#" data-page="analytics" class="nav-link flex items-center gap-3 px-6 py-3 text-blue-100/70 hover:text-white hover:bg-white/5 transition-all duration-300 font-headline font-semibold text-base">
+            <span class="material-symbols-outlined">query_stats</span> Analytics
+        </a>
+        <a href="#" data-page="research" class="nav-link flex items-center gap-3 px-6 py-3 text-blue-100/70 hover:text-white hover:bg-white/5 transition-all duration-300 font-headline font-semibold text-base">
+            <span class="material-symbols-outlined">science</span> Research
+        </a>
+        <a href="#" data-page="settings" class="nav-link flex items-center gap-3 px-6 py-3 text-blue-100/70 hover:text-white hover:bg-white/5 transition-all duration-300 font-headline font-semibold text-base">
+            <span class="material-symbols-outlined">settings</span> Settings
+        </a>
+    </nav>
+    <div class="mt-auto px-4 space-y-1 border-t border-white/10 pt-6">
+        <a class="flex items-center gap-3 px-6 py-2 text-blue-100/70 hover:text-white transition-all text-sm" href="#">
+            <span class="material-symbols-outlined text-xl">help</span>
+            Support
+        </a>
+        <a class="flex items-center gap-3 px-6 py-2 text-blue-100/70 hover:text-white transition-all text-sm" href="#">
+            <span class="material-symbols-outlined text-xl">logout</span>
+            Logout
+        </a>
+    </div>
+</aside>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<main class="ml-64 flex-1 flex flex-col h-screen overflow-hidden">
+    <!-- Top Bar -->
+    <header class="h-16 flex justify-between items-center px-12 bg-white/70 backdrop-blur-xl z-40 shadow-[0_40px_40px_rgba(5,22,78,0.06)] border-b border-surface-container-low">
+        <div class="flex items-center gap-4">
+            <h1 id="page-title" class="text-xl font-bold tracking-tight font-headline text-primary-container">Dashboard</h1>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2 bg-surface-container-low px-4 py-1.5 rounded-full border border-outline-variant/20">
+                <span class="material-symbols-outlined text-primary-container text-lg">search</span>
+                <input class="bg-transparent border-none focus:ring-0 text-sm font-body w-48" placeholder="Search clinical records..." type="text"/>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="toggleDarkMode()" class="p-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-colors" title="Toggle dark mode">
+                    <span class="material-symbols-outlined">dark_mode</span>
+                </button>
+                <button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-colors">
+                    <span class="material-symbols-outlined">notifications</span>
+                </button>
+                <button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-colors">
+                    <span class="material-symbols-outlined">settings</span>
+                </button>
+                <div class="h-9 w-9 rounded-full bg-primary-container overflow-hidden cursor-default select-none">
+                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGhtchKfrDVgBslL9vXY5J4s1zDVz5ckBoyl5urcjD_IH0wOom9Xzi6-xHd-isIbFUEjacvO-PJxLXHk6u0xKiJfoNmLJmG6p0MLuUR0Q177DWDh8TbLnqEOI5fSSSqRhIJX5t43Fb7XI_qBPT_izkEK1AVS4XMfn9_s1sxtC2t4y9Pncy40kHrYad6VEM_APGQYmgNuM7rSkZvZTDXVECs3qpa95ntUWGOH0iiXqLN2zxvf52mzAl44Du9pcl50k-gtA5e5vHKwc" alt="Profile" class="w-full h-full object-cover"/>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ═══════════════ PAGE: DASHBOARD ═══════════════ -->
+    <div id="page-dashboard" class="page p-8 flex-1 overflow-y-auto custom-scrollbar">
+        <div class="grid grid-cols-12 gap-6">
+            <!-- Model Status Card -->
+            <div class="col-span-4 p-6 glass-card border border-white rounded-xl shadow-sm fade-in">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white">memory</span>
+                    </div>
+                    <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">System Status</h3>
+                </div>
+                <div class="space-y-3" id="dash-model-status">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-on-surface-variant">Classification Model</span>
+                        <span class="font-semibold text-yellow-600" id="dash-cls-status">Checking…</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-on-surface-variant">Segmentation Model</span>
+                        <span class="font-semibold text-yellow-600" id="dash-seg-status">Checking…</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-on-surface-variant">Backend Server</span>
+                        <span class="font-semibold text-yellow-600" id="dash-server-status">Checking…</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Quick Stats -->
+            <div class="col-span-4 p-6 glass-card border border-white rounded-xl shadow-sm fade-in">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white">query_stats</span>
+                    </div>
+                    <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Session Stats</h3>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-surface-container-low p-4 rounded-xl text-center">
+                        <div class="text-2xl font-extrabold text-primary-container" id="stat-total">0</div>
+                        <div class="text-[10px] font-bold text-on-surface-variant uppercase mt-1">Analyses</div>
+                    </div>
+                    <div class="bg-surface-container-low p-4 rounded-xl text-center">
+                        <div class="text-2xl font-extrabold text-primary-container" id="stat-avg-time">—</div>
+                        <div class="text-[10px] font-bold text-on-surface-variant uppercase mt-1">Avg Time</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Quick Start -->
+            <div class="col-span-4 p-6 glass-card border border-white rounded-xl shadow-sm fade-in flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-secondary-container flex items-center justify-center">
+                            <span class="material-symbols-outlined text-white">rocket_launch</span>
+                        </div>
+                        <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Quick Start</h3>
+                    </div>
+                    <p class="text-sm text-on-surface-variant mb-4">Upload a biopsy image to run AI-powered classification and segmentation analysis.</p>
+                </div>
+                <button onclick="navigateTo('analysis')" class="w-full bg-secondary-container text-white py-3 rounded-xl font-headline font-bold text-sm hover:opacity-90 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-lg">upload_file</span>
+                    Upload & Analyze
+                </button>
+            </div>
+            <!-- Disclaimer -->
+            <div class="col-span-12 p-4 border-2 border-secondary-container/30 bg-secondary-container/5 rounded-xl flex items-center gap-3 fade-in">
+                <span class="material-symbols-outlined text-secondary-container text-xl">info</span>
+                <p class="text-sm font-semibold text-on-surface-variant">For research and demonstration purposes only. Not for clinical use.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════ PAGE: BIOPSY VIEWER (ANALYSIS) ═══════════════ -->
+    <div id="page-analysis" class="page p-8 flex-1 hidden overflow-hidden">
+        <div class="grid grid-cols-12 gap-6 h-full">
+            <section class="col-span-8 flex flex-col gap-0 overflow-hidden">
+                <div class="flex-1 glass-card border border-white rounded-xl shadow-sm flex flex-col relative overflow-hidden">
+                    <div id="viewer-toolbar" class="p-4 flex items-center justify-between border-b border-surface-container-low bg-white/50 backdrop-blur-md hidden">
+                        <div class="flex items-center gap-1 bg-surface-container-low p-1 rounded-lg">
+                            <button onclick="switchView('original')" class="view-btn active px-4 py-1.5 rounded-md text-xs font-semibold transition-all" data-view="original">Original</button>
+                            <button onclick="switchView('mask')" class="view-btn px-4 py-1.5 rounded-md text-xs font-medium text-on-surface-variant hover:bg-white/50 transition-all" data-view="mask">Heatmap</button>
+                            <button onclick="switchView('overlay')" class="view-btn px-4 py-1.5 rounded-md text-xs font-medium text-on-surface-variant hover:bg-white/50 transition-all" data-view="overlay">Segmentation</button>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Split View</span>
+                                <div onclick="toggleSplitView()" class="w-12 h-6 bg-surface-container-high rounded-full relative p-1 cursor-pointer transition-colors" id="split-toggle">
+                                    <div class="w-4 h-4 bg-white rounded-full shadow-md transition-transform" id="split-knob"></div>
+                                </div>
+                            </div>
+                            <div class="h-6 w-px bg-surface-container-high"></div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="zoomIn()" class="p-1.5 hover:bg-surface-container rounded-md transition-all"><span class="material-symbols-outlined text-lg">zoom_in</span></button>
+                                <button onclick="zoomOut()" class="p-1.5 hover:bg-surface-container rounded-md transition-all"><span class="material-symbols-outlined text-lg">zoom_out</span></button>
+                                <button onclick="toggleFullscreen()" class="p-1.5 hover:bg-surface-container rounded-md transition-all"><span class="material-symbols-outlined text-lg">fullscreen</span></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="upload-zone" class="drop-zone flex-1 flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-outline-variant/40 m-4 rounded-xl hover:border-secondary-container/60 transition-all"
+                         onclick="document.getElementById('file-input').click()"
+                         ondragover="event.preventDefault(); this.classList.add('dragover')"
+                         ondragleave="this.classList.remove('dragover')"
+                         ondrop="handleMultiDrop(event)">
+                        <input type="file" id="file-input" accept="image/png,image/jpeg" multiple class="hidden" onchange="handleMultiFileSelect(event)"/>
+                        <span class="material-symbols-outlined text-6xl text-outline-variant/40 mb-4">cloud_upload</span>
+                        <p class="text-lg font-headline font-bold text-on-surface-variant/60 mb-2">Drop biopsy image(s) here</p>
+                        <p class="text-sm text-on-surface-variant/40">or click to browse — PNG, JPG supported — multiple files OK</p>
+                    </div>
+                    <!-- Multi-image Queue Panel -->
+                    <div id="queue-panel" class="hidden flex-1 flex flex-col m-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Image Queue</h3>
+                            <div class="flex items-center gap-3">
+                                <span class="text-xs font-bold text-secondary-container" id="queue-progress-text">0/0</span>
+                                <button onclick="closeQueue()" class="text-xs text-on-surface-variant hover:text-error transition-all font-semibold flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-sm">close</span> Cancel
+                                </button>
+                            </div>
+                        </div>
+                        <div id="queue-list" class="flex-1 overflow-y-auto custom-scrollbar space-y-0.5 mb-3"></div>
+                        <button id="queue-start-btn" onclick="processQueue()" class="w-full bg-secondary-container text-white py-3 rounded-xl font-headline font-bold text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-lg">play_arrow</span> Analyze All
+                        </button>
+                    </div>
+                    <div id="image-canvas" class="flex-1 relative bg-slate-50 overflow-hidden hidden" style="cursor: grab;">
+                        <img id="viewer-img" class="absolute inset-0 w-full h-full object-contain transition-transform duration-200" src="" alt="Biopsy image"/>
+                    </div>
+                </div>
+            </section>
+            <aside class="col-span-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2">
+                <!-- Preprocessing Preview -->
+                <div id="card-preprocessing" class="p-4 glass-card border border-white rounded-xl shadow-sm hidden fade-in">
+                    <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-3">Preprocessing Preview</h3>
+                    <div id="preprocess-content"></div>
+                </div>
+                <div class="p-5 glass-card border border-white rounded-xl shadow-sm space-y-3">
+                    <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Actions</h3>
+                    <button id="btn-classify" onclick="runClassification()" disabled class="w-full bg-primary-container text-white py-2.5 px-4 rounded-xl font-headline font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed">
+                        <span class="material-symbols-outlined text-lg">category</span> Run Classification
+                    </button>
+                    <button id="btn-segment" onclick="runSegmentation()" disabled class="w-full bg-primary-container text-white py-2.5 px-4 rounded-xl font-headline font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed">
+                        <span class="material-symbols-outlined text-lg">texture</span> Run Segmentation
+                    </button>
+                    <button id="btn-both" onclick="runBoth()" disabled class="w-full bg-secondary-container text-white py-3 px-4 rounded-xl font-headline font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed">
+                        <span class="material-symbols-outlined text-lg">play_arrow</span> Analyze (Both)
+                    </button>
+                    <button id="btn-clear" onclick="clearAnalysis()" class="w-full text-on-surface-variant py-2 text-xs font-semibold flex items-center justify-center gap-1 hover:text-error transition-all">
+                        <span class="material-symbols-outlined text-sm">restart_alt</span> Clear & Reset
+                    </button>
+                </div>
+                <div id="card-classification" class="p-6 glass-card border border-white rounded-xl shadow-sm hidden fade-in">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Prediction Result</h3>
+                        <span class="material-symbols-outlined text-secondary-container">verified</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-2xl font-extrabold font-headline text-primary-container mb-1 leading-tight" id="cls-result-label">—</div>
+                            <p class="text-sm text-on-surface-variant" id="cls-result-conf">—</p>
+                        </div>
+                        <div class="relative w-16 h-16 flex items-center justify-center">
+                            <svg class="w-full h-full" viewBox="0 0 36 36">
+                                <circle class="stroke-surface-container-high" cx="18" cy="18" fill="none" r="16" stroke-width="3"/>
+                                <circle id="cls-donut" class="stroke-secondary-container" cx="18" cy="18" fill="none" r="16" stroke-dasharray="0, 100" stroke-linecap="round" stroke-width="3" style="transition: stroke-dasharray 0.8s ease;"/>
+                            </svg>
+                            <span id="cls-donut-pct" class="absolute text-[10px] font-bold text-primary-container">—</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="card-probabilities" class="p-6 glass-card border border-white rounded-xl shadow-sm hidden fade-in">
+                    <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-5">Probability Distribution</h3>
+                    <div id="prob-bars" class="space-y-3"></div>
+                </div>
+                <div id="card-segmentation" class="p-6 glass-card border border-white rounded-xl shadow-sm hidden fade-in">
+                    <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-4">Segmentation Analysis</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-surface-container-low p-3 rounded-xl">
+                            <div class="text-[10px] font-bold text-on-surface-variant uppercase mb-1">Lesion Area</div>
+                            <div class="text-xl font-extrabold text-primary-container" id="seg-roi">—</div>
+                        </div>
+                        <div class="bg-surface-container-low p-3 rounded-xl">
+                            <div class="text-[10px] font-bold text-on-surface-variant uppercase mb-1">Density Index</div>
+                            <div class="text-xl font-extrabold text-primary-container" id="seg-density">—</div>
+                        </div>
+                        <div class="bg-surface-container-low p-3 rounded-xl">
+                            <div class="text-[10px] font-bold text-on-surface-variant uppercase mb-1">Boundary Complexity</div>
+                            <div class="text-xl font-extrabold text-primary-container" id="seg-boundary">—</div>
+                        </div>
+                        <div class="bg-surface-container-low p-3 rounded-xl">
+                            <div class="text-[10px] font-bold text-on-surface-variant uppercase mb-1">Region Count</div>
+                            <div class="text-xl font-extrabold text-primary-container" id="seg-regions">—</div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center mt-3 pt-3 border-t border-surface-container-low">
+                        <span class="text-[10px] text-on-surface-variant">Inference Time</span>
+                        <span class="text-xs font-bold text-primary-container" id="seg-time">—</span>
+                    </div>
+                </div>
+                <div class="p-6 glass-card border border-white rounded-xl shadow-sm">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center">
+                            <span class="material-symbols-outlined text-white text-lg">memory</span>
+                        </div>
+                        <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Model Engine</h3>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs"><span class="text-on-surface-variant">Classification</span><span class="font-semibold text-primary-container" id="info-cls-arch">Stub (no model)</span></div>
+                        <div class="flex justify-between text-xs"><span class="text-on-surface-variant">Segmentation</span><span class="font-semibold text-primary-container" id="info-seg-arch">Stub (no model)</span></div>
+                        <div class="flex justify-between text-xs"><span class="text-on-surface-variant">Backend</span><span class="font-semibold text-primary-container" id="info-backend">localhost:8000</span></div>
+                    </div>
+                </div>
+                <!-- Reference Atlas -->
+                <div class="p-6 glass-card border border-white rounded-xl shadow-sm">
+                    <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-4">Reference Atlas</h3>
+                    <div class="grid grid-cols-4 gap-2">
+                        <div class="atlas-cell aspect-square rounded-lg bg-surface-container-low flex items-center justify-center cursor-pointer hover:bg-surface-container transition-all border-2 border-transparent" data-cls="0"><span class="text-[10px] font-bold text-primary-container">C0</span></div>
+                        <div class="atlas-cell aspect-square rounded-lg bg-surface-container-low flex items-center justify-center cursor-pointer hover:bg-surface-container transition-all border-2 border-transparent" data-cls="1"><span class="text-[10px] font-bold text-primary-container">C1</span></div>
+                        <div class="atlas-cell aspect-square rounded-lg bg-surface-container-low flex items-center justify-center cursor-pointer hover:bg-surface-container transition-all border-2 border-transparent" data-cls="2"><span class="text-[10px] font-bold text-primary-container">C2</span></div>
+                        <div class="atlas-cell aspect-square rounded-lg bg-surface-container-low flex items-center justify-center cursor-pointer hover:bg-surface-container transition-all border-2 border-transparent" data-cls="3"><span class="text-[10px] font-bold text-primary-container">C3</span></div>
+                        <div class="atlas-cell aspect-square rounded-lg bg-surface-container-low flex items-center justify-center cursor-pointer hover:bg-surface-container transition-all border-2 border-transparent" data-cls="4"><span class="text-[10px] font-bold text-primary-container">C4</span></div>
+                        <div class="atlas-cell aspect-square rounded-lg bg-surface-container-low flex items-center justify-center cursor-pointer hover:bg-surface-container transition-all border-2 border-transparent" data-cls="5"><span class="text-[10px] font-bold text-primary-container">C5</span></div>
+                        <div class="atlas-cell aspect-square rounded-lg bg-surface-container-low flex items-center justify-center cursor-pointer hover:bg-surface-container transition-all border-2 border-transparent" data-cls="6"><span class="text-[10px] font-bold text-primary-container">C6</span></div>
+                        <div class="atlas-cell aspect-square rounded-lg bg-surface-container-low flex items-center justify-center cursor-pointer hover:bg-surface-container transition-all border-2 border-transparent" data-cls="7"><span class="text-[10px] font-bold text-primary-container">C7</span></div>
+                        <div class="atlas-cell aspect-square rounded-lg bg-surface-container-low flex items-center justify-center cursor-pointer hover:bg-surface-container transition-all border-2 border-transparent" data-cls="8"><span class="text-[10px] font-bold text-primary-container">C8</span></div>
+                        <div class="atlas-cell aspect-square rounded-lg bg-surface-container-low flex items-center justify-center cursor-pointer hover:bg-surface-container transition-all border-2 border-transparent" data-cls="9"><span class="text-[10px] font-bold text-primary-container">C9</span></div>
+                        <div class="atlas-cell aspect-square rounded-lg bg-surface-container-low flex items-center justify-center cursor-pointer hover:bg-surface-container transition-all border-2 border-transparent" data-cls="10"><span class="text-[10px] font-bold text-primary-container">C10</span></div>
+                        <div class="atlas-cell aspect-square rounded-lg bg-surface-container-low flex items-center justify-center cursor-pointer hover:bg-surface-container transition-all border-2 border-transparent" data-cls="11"><span class="text-[10px] font-bold text-primary-container">C11</span></div>
+                    </div>
+                </div>
+                <!-- Batch Processing Button -->
+                <button onclick="openBatchModal()" class="w-full p-3 glass-card border border-white rounded-xl shadow-sm text-xs font-bold text-primary-container uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-surface-container-low transition-all">
+                    <span class="material-symbols-outlined text-sm">folder_open</span> Batch Processing
+                </button>
+                <!-- Disclaimer -->
+                <div class="p-3 border border-secondary-container/30 bg-secondary-container/5 rounded-xl flex items-start gap-2">
+                    <span class="material-symbols-outlined text-secondary-container text-sm mt-0.5">info</span>
+                    <p class="text-[10px] font-semibold text-on-surface-variant leading-relaxed">For research and demonstration purposes only. Not for clinical use.</p>
+                </div>
+                <div class="h-6 shrink-0"></div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- ═══════════════ PAGE: PATIENT ARCHIVE ═══════════════ -->
+    <div id="page-archive" class="page p-8 flex-1 hidden overflow-y-auto custom-scrollbar">
+        <div class="grid grid-cols-12 gap-6">
+            <!-- Archive Stats Row -->
+            <div class="col-span-3 p-5 glass-card border border-white rounded-xl shadow-sm fade-in">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white text-sm">folder_shared</span>
+                    </div>
+                    <h3 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Total Records</h3>
+                </div>
+                <div class="text-3xl font-extrabold text-primary-container" id="archive-total">0</div>
+            </div>
+            <div class="col-span-3 p-5 glass-card border border-white rounded-xl shadow-sm fade-in">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-8 h-8 rounded-lg bg-secondary-container flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white text-sm">category</span>
+                    </div>
+                    <h3 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Classifications</h3>
+                </div>
+                <div class="text-3xl font-extrabold text-primary-container" id="archive-cls-count">0</div>
+            </div>
+            <div class="col-span-3 p-5 glass-card border border-white rounded-xl shadow-sm fade-in">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white text-sm">texture</span>
+                    </div>
+                    <h3 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Avg Confidence</h3>
+                </div>
+                <div class="text-3xl font-extrabold text-primary-container" id="archive-avg-conf">—</div>
+            </div>
+            <div class="col-span-3 p-5 glass-card border border-white rounded-xl shadow-sm fade-in">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-8 h-8 rounded-lg bg-secondary-container flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white text-sm">avg_pace</span>
+                    </div>
+                    <h3 class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Avg ROI</h3>
+                </div>
+                <div class="text-3xl font-extrabold text-primary-container" id="archive-avg-roi">—</div>
+            </div>
+            <!-- Records Table -->
+            <div class="col-span-12 glass-card border border-white rounded-xl shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-surface-container-low flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Patient Records</h3>
+                        <span class="text-[10px] bg-surface-container-low px-2 py-0.5 rounded-full font-semibold text-on-surface-variant" id="archive-count-badge">0 records</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button id="compare-btn" onclick="openCompareModal()" class="hidden text-xs bg-secondary-container text-white px-4 py-1.5 rounded-full font-bold flex items-center gap-1 hover:opacity-90 transition-all">
+                            <span class="material-symbols-outlined text-sm">compare</span> Compare Selected
+                        </button>
+                        <button onclick="clearHistory()" class="text-xs text-on-surface-variant hover:text-error transition-all font-semibold flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">delete</span> Clear All
+                        </button>
+                    </div>
+                </div>
+                <!-- Table Header -->
+                <div class="flex items-center gap-4 px-6 py-3 bg-surface-container-low/50 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+                    <div class="w-8 shrink-0">ID</div>
+                    <div class="w-10 shrink-0">Image</div>
+                    <div class="flex-1">File / Date</div>
+                    <div class="px-2">Class</div>
+                    <div class="px-2">Conf.</div>
+                    <div class="px-2">ROI</div>
+                    <div class="px-2">Time</div>
+                </div>
+                <div id="archive-list" class="divide-y divide-surface-container-low">
+                    <div class="p-12 text-center text-on-surface-variant/50">
+                        <span class="material-symbols-outlined text-4xl mb-2 block">inbox</span>
+                        <p class="text-sm">No patient records yet. Run an analysis from the Biopsy Viewer.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════ PAGE: ANALYTICS ═══════════════ -->
+    <div id="page-analytics" class="page p-8 flex-1 hidden overflow-y-auto custom-scrollbar">
+        <div class="grid grid-cols-12 gap-6">
+            <!-- Class Distribution -->
+            <div class="col-span-8 p-6 glass-card border border-white rounded-xl shadow-sm fade-in">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white text-sm">bar_chart</span>
+                    </div>
+                    <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Class Distribution</h3>
+                </div>
+                <div id="analytics-class-bars" class="space-y-3">
+                    <!-- Bars for classes 0-11 -->
+                </div>
+                <div id="analytics-class-empty" class="py-8 text-center text-on-surface-variant/50">
+                    <span class="material-symbols-outlined text-3xl mb-2 block">bar_chart</span>
+                    <p class="text-sm">Run analyses to see class distribution data.</p>
+                </div>
+            </div>
+            <!-- Performance Summary -->
+            <div class="col-span-4 flex flex-col gap-6">
+                <div class="p-6 glass-card border border-white rounded-xl shadow-sm fade-in">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-8 h-8 rounded-lg bg-secondary-container flex items-center justify-center">
+                            <span class="material-symbols-outlined text-white text-sm">speed</span>
+                        </div>
+                        <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Performance</h3>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="bg-surface-container-low p-4 rounded-xl">
+                            <div class="text-[10px] font-bold text-on-surface-variant uppercase mb-1">Avg Classification Time</div>
+                            <div class="text-xl font-extrabold text-primary-container" id="analytics-avg-cls-time">—</div>
+                        </div>
+                        <div class="bg-surface-container-low p-4 rounded-xl">
+                            <div class="text-[10px] font-bold text-on-surface-variant uppercase mb-1">Avg Segmentation Time</div>
+                            <div class="text-xl font-extrabold text-primary-container" id="analytics-avg-seg-time">—</div>
+                        </div>
+                        <div class="bg-surface-container-low p-4 rounded-xl">
+                            <div class="text-[10px] font-bold text-on-surface-variant uppercase mb-1">Total Analyses</div>
+                            <div class="text-xl font-extrabold text-primary-container" id="analytics-total">0</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Confidence Breakdown -->
+                <div class="p-6 glass-card border border-white rounded-xl shadow-sm fade-in">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center">
+                            <span class="material-symbols-outlined text-white text-sm">target</span>
+                        </div>
+                        <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Confidence Spread</h3>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between text-[10px] font-semibold text-primary-container mb-1">
+                                <span>High (&gt;80%)</span><span id="analytics-conf-high">0</span>
+                            </div>
+                            <div class="w-full h-2 bg-surface-container-low rounded-full overflow-hidden">
+                                <div id="analytics-conf-high-bar" class="h-full bg-green-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[10px] font-semibold text-primary-container mb-1">
+                                <span>Medium (50–80%)</span><span id="analytics-conf-med">0</span>
+                            </div>
+                            <div class="w-full h-2 bg-surface-container-low rounded-full overflow-hidden">
+                                <div id="analytics-conf-med-bar" class="h-full bg-yellow-400 rounded-full transition-all duration-500" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[10px] font-semibold text-primary-container mb-1">
+                                <span>Low (&lt;50%)</span><span id="analytics-conf-low">0</span>
+                            </div>
+                            <div class="w-full h-2 bg-surface-container-low rounded-full overflow-hidden">
+                                <div id="analytics-conf-low-bar" class="h-full bg-red-400 rounded-full transition-all duration-500" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- ROI Distribution -->
+            <div class="col-span-6 p-6 glass-card border border-white rounded-xl shadow-sm fade-in">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white text-sm">texture</span>
+                    </div>
+                    <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">ROI Statistics</h3>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="bg-surface-container-low p-4 rounded-xl text-center">
+                        <div class="text-xl font-extrabold text-primary-container" id="analytics-roi-min">—</div>
+                        <div class="text-[10px] font-bold text-on-surface-variant uppercase mt-1">Min ROI</div>
+                    </div>
+                    <div class="bg-surface-container-low p-4 rounded-xl text-center">
+                        <div class="text-xl font-extrabold text-secondary-container" id="analytics-roi-avg">—</div>
+                        <div class="text-[10px] font-bold text-on-surface-variant uppercase mt-1">Avg ROI</div>
+                    </div>
+                    <div class="bg-surface-container-low p-4 rounded-xl text-center">
+                        <div class="text-xl font-extrabold text-primary-container" id="analytics-roi-max">—</div>
+                        <div class="text-[10px] font-bold text-on-surface-variant uppercase mt-1">Max ROI</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Recent Activity Timeline -->
+            <div class="col-span-6 p-6 glass-card border border-white rounded-xl shadow-sm fade-in">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-8 h-8 rounded-lg bg-secondary-container flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white text-sm">timeline</span>
+                    </div>
+                    <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Recent Activity</h3>
+                </div>
+                <div id="analytics-timeline" class="space-y-3 max-h-40 overflow-y-auto custom-scrollbar">
+                    <div class="text-center text-on-surface-variant/50 py-4">
+                        <p class="text-sm">No activity yet.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════ PAGE: RESEARCH ═══════════════ -->
+    <div id="page-research" class="page p-8 flex-1 hidden overflow-y-auto custom-scrollbar">
+        <div class="grid grid-cols-12 gap-6">
+            <!-- Project Overview -->
+            <div class="col-span-8 p-6 glass-card border border-white rounded-xl shadow-sm fade-in">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white">science</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Research Overview</h3>
+                        <p class="text-[10px] text-on-surface-variant mt-0.5">AI in Healthcare Hackathon 2026 — Central Asian University</p>
+                    </div>
+                </div>
+                <div class="space-y-5">
+                    <div>
+                        <h4 class="text-sm font-bold text-primary-container mb-2">Objective</h4>
+                        <p class="text-sm text-on-surface-variant leading-relaxed">Design AI systems capable of analyzing medical biopsy images through image classification (12 classes) and binary segmentation to detect regions of interest in tissue samples.</p>
+                    </div>
+                    <div class="h-px bg-surface-container-high"></div>
+                    <div>
+                        <h4 class="text-sm font-bold text-primary-container mb-2">Classification Task</h4>
+                        <p class="text-sm text-on-surface-variant leading-relaxed mb-3">Multi-class classification of biopsy images into 12 categories (0–11). Disease names are intentionally hidden. The model predicts the correct numeric label for each tissue sample.</p>
+                        <div class="grid grid-cols-4 gap-2">
+                            <div class="bg-surface-container-low p-3 rounded-xl text-center">
+                                <div class="text-lg font-extrabold text-primary-container">12</div>
+                                <div class="text-[10px] font-bold text-on-surface-variant uppercase">Classes</div>
+                            </div>
+                            <div class="bg-surface-container-low p-3 rounded-xl text-center">
+                                <div class="text-lg font-extrabold text-primary-container">11,411</div>
+                                <div class="text-[10px] font-bold text-on-surface-variant uppercase">Train Images</div>
+                            </div>
+                            <div class="bg-surface-container-low p-3 rounded-xl text-center">
+                                <div class="text-lg font-extrabold text-primary-container">1,276</div>
+                                <div class="text-[10px] font-bold text-on-surface-variant uppercase">Test Images</div>
+                            </div>
+                            <div class="bg-surface-container-low p-3 rounded-xl text-center">
+                                <div class="text-lg font-extrabold text-secondary-container">30</div>
+                                <div class="text-[10px] font-bold text-on-surface-variant uppercase">Max Points</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="h-px bg-surface-container-high"></div>
+                    <div>
+                        <h4 class="text-sm font-bold text-primary-container mb-2">Segmentation Task</h4>
+                        <p class="text-sm text-on-surface-variant leading-relaxed mb-3">Binary segmentation to detect regions of interest in biopsy images. Predicted masks must match input dimensions and be binary (0/255).</p>
+                        <div class="grid grid-cols-4 gap-2">
+                            <div class="bg-surface-container-low p-3 rounded-xl text-center">
+                                <div class="text-lg font-extrabold text-primary-container">Binary</div>
+                                <div class="text-[10px] font-bold text-on-surface-variant uppercase">Mask Type</div>
+                            </div>
+                            <div class="bg-surface-container-low p-3 rounded-xl text-center">
+                                <div class="text-lg font-extrabold text-primary-container">1,800</div>
+                                <div class="text-[10px] font-bold text-on-surface-variant uppercase">Train Images</div>
+                            </div>
+                            <div class="bg-surface-container-low p-3 rounded-xl text-center">
+                                <div class="text-lg font-extrabold text-primary-container">200</div>
+                                <div class="text-[10px] font-bold text-on-surface-variant uppercase">Test Images</div>
+                            </div>
+                            <div class="bg-surface-container-low p-3 rounded-xl text-center">
+                                <div class="text-lg font-extrabold text-secondary-container">40</div>
+                                <div class="text-[10px] font-bold text-on-surface-variant uppercase">Max Points</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-span-4 flex flex-col gap-6">
+                <!-- Scoring -->
+                <div class="p-6 glass-card border border-white rounded-xl shadow-sm fade-in">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-8 h-8 rounded-lg bg-secondary-container flex items-center justify-center">
+                            <span class="material-symbols-outlined text-white text-sm">emoji_events</span>
+                        </div>
+                        <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Scoring</h3>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="bg-surface-container-low p-4 rounded-xl">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-on-surface-variant">Classification</span>
+                                <span class="text-sm font-extrabold text-primary-container">30 pts</span>
+                            </div>
+                            <div class="text-[10px] text-on-surface-variant/60 mt-1">Scored by accuracy on test set</div>
+                        </div>
+                        <div class="bg-surface-container-low p-4 rounded-xl">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-on-surface-variant">Segmentation</span>
+                                <span class="text-sm font-extrabold text-primary-container">40 pts</span>
+                            </div>
+                            <div class="text-[10px] text-on-surface-variant/60 mt-1">Scored by mean IoU on test set</div>
+                        </div>
+                        <div class="bg-surface-container-low p-4 rounded-xl">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-on-surface-variant">Presentation</span>
+                                <span class="text-sm font-extrabold text-secondary-container">30 pts</span>
+                            </div>
+                            <div class="text-[10px] text-on-surface-variant/60 mt-1">UI + Error handling + Innovation + Clarity</div>
+                        </div>
+                        <div class="h-px bg-surface-container-high"></div>
+                        <div class="flex justify-between items-center px-1">
+                            <span class="text-xs font-bold text-primary-container uppercase">Total</span>
+                            <span class="text-lg font-extrabold text-secondary-container">100 pts</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dataset Class Breakdown -->
+                <div class="p-6 glass-card border border-white rounded-xl shadow-sm fade-in">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center">
+                            <span class="material-symbols-outlined text-white text-sm">dataset</span>
+                        </div>
+                        <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Training Class Sizes</h3>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-[10px] font-semibold text-primary-container"><span>Class 0</span><span>571</span></div>
+                        <div class="w-full h-1.5 bg-surface-container-low rounded-full overflow-hidden"><div class="h-full bg-primary-container/30 rounded-full" style="width:26.7%"></div></div>
+                        <div class="flex justify-between text-[10px] font-semibold text-primary-container"><span>Class 1</span><span>974</span></div>
+                        <div class="w-full h-1.5 bg-surface-container-low rounded-full overflow-hidden"><div class="h-full bg-primary-container/30 rounded-full" style="width:45.6%"></div></div>
+                        <div class="flex justify-between text-[10px] font-semibold text-primary-container"><span>Class 2</span><span>1,043</span></div>
+                        <div class="w-full h-1.5 bg-surface-container-low rounded-full overflow-hidden"><div class="h-full bg-primary-container/30 rounded-full" style="width:48.8%"></div></div>
+                        <div class="flex justify-between text-[10px] font-semibold text-primary-container"><span>Class 3</span><span>750</span></div>
+                        <div class="w-full h-1.5 bg-surface-container-low rounded-full overflow-hidden"><div class="h-full bg-primary-container/30 rounded-full" style="width:35.1%"></div></div>
+                        <div class="flex justify-between text-[10px] font-semibold text-primary-container"><span>Class 4</span><span>814</span></div>
+                        <div class="w-full h-1.5 bg-surface-container-low rounded-full overflow-hidden"><div class="h-full bg-primary-container/30 rounded-full" style="width:38.1%"></div></div>
+                        <div class="flex justify-between text-[10px] font-semibold text-primary-container"><span>Class 5</span><span>441</span></div>
+                        <div class="w-full h-1.5 bg-surface-container-low rounded-full overflow-hidden"><div class="h-full bg-secondary-container/60 rounded-full" style="width:20.6%"></div></div>
+                        <div class="flex justify-between text-[10px] font-semibold text-primary-container"><span>Class 6</span><span>545</span></div>
+                        <div class="w-full h-1.5 bg-surface-container-low rounded-full overflow-hidden"><div class="h-full bg-primary-container/30 rounded-full" style="width:25.5%"></div></div>
+                        <div class="flex justify-between text-[10px] font-semibold text-primary-container"><span>Class 7</span><span>2,136</span></div>
+                        <div class="w-full h-1.5 bg-surface-container-low rounded-full overflow-hidden"><div class="h-full bg-secondary-container rounded-full" style="width:100%"></div></div>
+                        <div class="flex justify-between text-[10px] font-semibold text-primary-container"><span>Class 8</span><span>331</span></div>
+                        <div class="w-full h-1.5 bg-surface-container-low rounded-full overflow-hidden"><div class="h-full bg-secondary-container/60 rounded-full" style="width:15.5%"></div></div>
+                        <div class="flex justify-between text-[10px] font-semibold text-primary-container"><span>Class 9</span><span>1,111</span></div>
+                        <div class="w-full h-1.5 bg-surface-container-low rounded-full overflow-hidden"><div class="h-full bg-primary-container/30 rounded-full" style="width:52%"></div></div>
+                        <div class="flex justify-between text-[10px] font-semibold text-primary-container"><span>Class 10</span><span>899</span></div>
+                        <div class="w-full h-1.5 bg-surface-container-low rounded-full overflow-hidden"><div class="h-full bg-primary-container/30 rounded-full" style="width:42.1%"></div></div>
+                        <div class="flex justify-between text-[10px] font-semibold text-primary-container"><span>Class 11</span><span>1,796</span></div>
+                        <div class="w-full h-1.5 bg-surface-container-low rounded-full overflow-hidden"><div class="h-full bg-primary-container/50 rounded-full" style="width:84.1%"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Methodology -->
+            <div class="col-span-6 p-6 glass-card border border-white rounded-xl shadow-sm fade-in">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white text-sm">account_tree</span>
+                    </div>
+                    <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">AI Workflow Pipeline</h3>
+                </div>
+                <div class="space-y-3">
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-full bg-secondary-container flex items-center justify-center shrink-0 mt-0.5">
+                            <span class="text-white text-[10px] font-bold">1</span>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-primary-container">Data Preprocessing</div>
+                            <p class="text-[10px] text-on-surface-variant mt-0.5">Resize, normalize, augment biopsy images for model input</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-full bg-secondary-container flex items-center justify-center shrink-0 mt-0.5">
+                            <span class="text-white text-[10px] font-bold">2</span>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-primary-container">Model Training</div>
+                            <p class="text-[10px] text-on-surface-variant mt-0.5">Transfer learning with pretrained architectures on biopsy dataset</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-full bg-secondary-container flex items-center justify-center shrink-0 mt-0.5">
+                            <span class="text-white text-[10px] font-bold">3</span>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-primary-container">Inference</div>
+                            <p class="text-[10px] text-on-surface-variant mt-0.5">Run classification and segmentation on uploaded images via API</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="w-6 h-6 rounded-full bg-secondary-container flex items-center justify-center shrink-0 mt-0.5">
+                            <span class="text-white text-[10px] font-bold">4</span>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-primary-container">Visualization</div>
+                            <p class="text-[10px] text-on-surface-variant mt-0.5">Display predictions, probability distributions, and mask overlays</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Allowed Resources -->
+            <div class="col-span-6 p-6 glass-card border border-white rounded-xl shadow-sm fade-in">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white text-sm">gavel</span>
+                    </div>
+                    <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Data Usage Rules</h3>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2 text-xs"><span class="text-green-600 font-bold">&#10003;</span><span class="text-on-surface-variant">Pretrained models allowed</span></div>
+                    <div class="flex items-center gap-2 text-xs"><span class="text-green-600 font-bold">&#10003;</span><span class="text-on-surface-variant">Transfer learning allowed</span></div>
+                    <div class="flex items-center gap-2 text-xs"><span class="text-green-600 font-bold">&#10003;</span><span class="text-on-surface-variant">Public open-source libraries</span></div>
+                    <div class="flex items-center gap-2 text-xs"><span class="text-green-600 font-bold">&#10003;</span><span class="text-on-surface-variant">Public datasets for pretraining</span></div>
+                    <div class="h-px bg-surface-container-high my-2"></div>
+                    <div class="flex items-center gap-2 text-xs"><span class="text-red-500 font-bold">&#10007;</span><span class="text-on-surface-variant">Using test images for training</span></div>
+                    <div class="flex items-center gap-2 text-xs"><span class="text-red-500 font-bold">&#10007;</span><span class="text-on-surface-variant">Manually labeling test images</span></div>
+                    <div class="flex items-center gap-2 text-xs"><span class="text-red-500 font-bold">&#10007;</span><span class="text-on-surface-variant">External datasets with same images</span></div>
+                    <div class="flex items-center gap-2 text-xs"><span class="text-red-500 font-bold">&#10007;</span><span class="text-on-surface-variant">Sharing predictions between teams</span></div>
+                </div>
+            </div>
+
+            <!-- Dataset Verification -->
+            <div class="col-span-12 p-6 glass-card border border-white rounded-xl shadow-sm fade-in">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-8 h-8 rounded-lg bg-secondary-container flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white text-sm">fact_check</span>
+                    </div>
+                    <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Dataset Verification Tool</h3>
+                </div>
+                <p class="text-xs text-on-surface-variant mb-3">Select the dataset root folder to verify all files and counts match the expected structure.</p>
+                <div class="flex gap-2 mb-4">
+                    <input type="file" id="dataset-folder-input" webkitdirectory multiple class="flex-1 text-xs file:mr-2 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-primary-container file:text-white file:font-bold file:text-xs file:cursor-pointer"/>
+                    <button onclick="verifyDataset()" class="px-6 py-2 bg-secondary-container text-white rounded-xl font-bold text-xs hover:opacity-90 transition-all">Verify</button>
+                </div>
+                <div id="verify-wrap" class="hidden">
+                    <div class="grid grid-cols-12 gap-2 px-4 py-2 bg-surface-container-low/50 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest rounded-t-lg">
+                        <div class="col-span-6">Folder</div>
+                        <div class="col-span-2 text-center">Expected</div>
+                        <div class="col-span-2 text-center">Actual</div>
+                        <div class="col-span-2 text-center">Status</div>
+                    </div>
+                    <div id="verify-results" class="border border-surface-container-low rounded-b-lg divide-y divide-surface-container-low"></div>
+                    <div id="verify-summary"></div>
+                </div>
+            </div>
+            <!-- Disclaimer -->
+            <div class="col-span-12 p-4 border-2 border-secondary-container/30 bg-secondary-container/5 rounded-xl flex items-center gap-3 fade-in">
+                <span class="material-symbols-outlined text-secondary-container text-xl">info</span>
+                <p class="text-sm font-semibold text-on-surface-variant">For research and demonstration purposes only. Not for clinical use.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════ PAGE: SETTINGS (hidden, accessible via gear icon) ═══════════════ -->
+    <div id="page-settings" class="page p-8 flex-1 hidden overflow-y-auto custom-scrollbar">
+        <div class="max-w-xl space-y-6">
+            <div class="p-6 glass-card border border-white rounded-xl shadow-sm">
+                <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-4">Backend Configuration</h3>
+                <div class="space-y-3">
+                    <label class="text-sm font-medium text-on-surface">API Base URL</label>
+                    <div class="flex gap-2">
+                        <input id="settings-url" type="text" class="flex-1 bg-surface-container-low border border-outline-variant/20 rounded-xl px-4 py-2.5 text-sm font-body focus:ring-2 focus:ring-secondary-container/30 focus:border-secondary-container" value="http://localhost:8000"/>
+                        <button onclick="saveSettings()" class="px-6 py-2.5 bg-primary-container text-white rounded-xl font-headline font-bold text-sm hover:opacity-90 transition-all">Save</button>
+                    </div>
+                    <button onclick="testConnection()" class="text-xs font-semibold text-secondary-container hover:opacity-70 transition-all flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">lan</span> Test Connection
+                    </button>
+                    <div id="settings-status" class="text-xs font-semibold hidden"></div>
+                </div>
+            </div>
+            <div class="p-6 glass-card border border-white rounded-xl shadow-sm">
+                <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-4">About</h3>
+                <div class="space-y-2 text-sm text-on-surface-variant">
+                    <p><strong class="text-primary-container">CAU AI Vision Dashboard</strong> — AI in Healthcare Hackathon 2026</p>
+                    <p>Central Asian University</p>
+                    <p class="text-xs mt-3 text-on-surface-variant/60">For research and demonstration purposes only. Not for clinical use.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Export Buttons -->
+    <div id="fab-export" class="fixed bottom-8 right-8 z-50 hidden flex gap-3">
+        <button onclick="exportPDF()" class="bg-secondary text-white px-6 py-4 rounded-full font-headline font-bold text-sm flex items-center gap-3 shadow-[0_20px_40px_rgba(166,59,0,0.3)] hover:scale-105 active:scale-95 transition-all">
+            <span class="material-symbols-outlined">picture_as_pdf</span>
+            Export PDF
+        </button>
+        <button onclick="exportResults()" class="bg-primary-container text-white px-6 py-4 rounded-full font-headline font-bold text-sm flex items-center gap-2 shadow-lg hover:scale-105 active:scale-95 transition-all">
+            <span class="material-symbols-outlined">download</span>
+            JSON
+        </button>
+    </div>
+
+    <!-- Comparison Modal -->
+    <div id="compare-modal" class="hidden modal-backdrop" onclick="if(event.target===this)closeCompareModal()">
+        <div class="modal-content p-8" style="max-width:800px;">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-bold font-headline text-primary-container">Side-by-Side Comparison</h2>
+                <button onclick="closeCompareModal()" class="p-1 hover:bg-surface-container rounded-full"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div id="compare-content"></div>
+        </div>
+    </div>
+
+    <!-- Image Viewer Modal -->
+    <div id="image-viewer-modal" class="hidden fixed inset-0 z-[200] bg-black/85 backdrop-blur-md flex flex-col items-center justify-center" onclick="if(event.target===this)closeImageViewer()">
+        <!-- Top Controls Bar -->
+        <div class="flex gap-3 mb-4">
+            <button onclick="viewerZoomIn()" class="w-11 h-11 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg hover:bg-white hover:scale-110 transition-all">
+                <span class="material-symbols-outlined text-primary-container">zoom_in</span>
+            </button>
+            <button onclick="viewerZoomOut()" class="w-11 h-11 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg hover:bg-white hover:scale-110 transition-all">
+                <span class="material-symbols-outlined text-primary-container">zoom_out</span>
+            </button>
+            <button onclick="viewerResetZoom()" class="w-11 h-11 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg hover:bg-white hover:scale-110 transition-all">
+                <span class="material-symbols-outlined text-primary-container">fit_screen</span>
+            </button>
+            <button onclick="closeImageViewer()" class="w-11 h-11 bg-red-500/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg hover:bg-red-500 hover:scale-110 transition-all">
+                <span class="material-symbols-outlined text-white">close</span>
+            </button>
+        </div>
+        <!-- Image Container -->
+        <div class="overflow-auto rounded-2xl bg-black/30 p-2" style="max-width:85vw; max-height:78vh;">
+            <img id="image-viewer-img" class="transition-transform duration-200 rounded-xl" src="" alt="Full view" style="min-width:300px; min-height:300px; max-height:75vh; object-fit:contain;"/>
+        </div>
+        <!-- Zoom indicator -->
+        <div class="mt-3 text-white/60 text-xs font-bold" id="viewer-zoom-label">100%</div>
+    </div>
+
+    <!-- Batch Processing Modal -->
+    <div id="batch-modal" class="modal-backdrop hidden" onclick="if(event.target===this)closeBatchModal()">
+        <div class="modal-content p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-bold font-headline text-primary-container">Batch Processing</h2>
+                <button onclick="closeBatchModal()" class="p-1 hover:bg-surface-container rounded-full"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <!-- Batch Classify -->
+            <div class="mb-6">
+                <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-3">Batch Classification → Excel</h3>
+                <p class="text-xs text-on-surface-variant mb-3">Select the folder containing test images (1276 PNG files). Downloads <code class="bg-surface-container-low px-1 rounded">test_ground_truth.xlsx</code></p>
+                <div class="flex gap-2">
+                    <input type="file" id="batch-cls-input" webkitdirectory multiple class="flex-1 text-xs file:mr-2 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-primary-container file:text-white file:font-bold file:text-xs file:cursor-pointer"/>
+                    <button onclick="runBatchClassify()" class="px-6 py-2 bg-secondary-container text-white rounded-xl font-bold text-xs hover:opacity-90 transition-all">Classify All</button>
+                </div>
+            </div>
+            <div class="h-px bg-surface-container-high mb-6"></div>
+            <!-- Batch Segment -->
+            <div class="mb-6">
+                <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-3">Batch Segmentation → ZIP</h3>
+                <p class="text-xs text-on-surface-variant mb-3">Select the folder containing test images (200 PNG files). Downloads <code class="bg-surface-container-low px-1 rounded">masks.zip</code></p>
+                <div class="flex gap-2">
+                    <input type="file" id="batch-seg-input" webkitdirectory multiple class="flex-1 text-xs file:mr-2 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-primary-container file:text-white file:font-bold file:text-xs file:cursor-pointer"/>
+                    <button onclick="runBatchSegment()" class="px-6 py-2 bg-secondary-container text-white rounded-xl font-bold text-xs hover:opacity-90 transition-all">Segment All</button>
+                </div>
+            </div>
+            <!-- Progress -->
+            <div id="batch-progress-wrap" class="hidden mb-4">
+                <p class="text-xs text-on-surface-variant mb-2" id="batch-status">Processing…</p>
+                <div class="progress-bar"><div id="batch-progress" class="progress-fill" style="width:0%"></div></div>
+            </div>
+            <div id="batch-result" class="hidden text-sm font-bold text-green-600"></div>
+        </div>
+    </div>
+</main>
+
+<script src="js/app.js"></script>
+</body>
+</html>

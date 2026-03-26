@@ -1,0 +1,213 @@
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Glass morphism card */
+.glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+html.dark .glass-card {
+    background: rgba(15, 23, 42, 0.75);
+    border-color: rgba(51, 65, 85, 0.5) !important;
+}
+
+/* ── Dark Mode Overrides ────────────────────────── */
+html.dark body {
+    background: #0f172a;
+    color: #e2e8f0;
+}
+html.dark header {
+    background: rgba(15, 23, 42, 0.8) !important;
+    border-color: rgba(51, 65, 85, 0.5) !important;
+}
+html.dark .bg-surface-container-low,
+html.dark .bg-surface-container,
+html.dark .bg-surface-container-high {
+    background: rgba(30, 41, 59, 0.8) !important;
+}
+html.dark .text-on-surface,
+html.dark .text-on-surface-variant,
+html.dark .text-on-background {
+    color: #cbd5e1 !important;
+}
+html.dark .text-primary-container {
+    color: #93a5f6 !important;
+}
+html.dark .border-white {
+    border-color: rgba(51, 65, 85, 0.5) !important;
+}
+html.dark .border-surface-container-low {
+    border-color: rgba(51, 65, 85, 0.4) !important;
+}
+html.dark input[type="text"] {
+    background: rgba(30, 41, 59, 0.8) !important;
+    color: #e2e8f0 !important;
+    border-color: rgba(51, 65, 85, 0.5) !important;
+}
+html.dark .bg-slate-50,
+html.dark .bg-slate-100 {
+    background: #1e293b !important;
+}
+html.dark .drop-zone {
+    border-color: rgba(100, 116, 139, 0.4) !important;
+}
+html.dark .drop-zone:hover {
+    border-color: rgba(253, 107, 38, 0.6) !important;
+}
+html.dark .text-on-surface-variant\/60,
+html.dark .text-on-surface-variant\/40,
+html.dark .text-on-surface-variant\/50 {
+    color: rgba(148, 163, 184, 0.7) !important;
+}
+html.dark .modal-content {
+    background: #1e293b;
+    color: #e2e8f0;
+}
+html.dark .bg-surface-container-low\/50 {
+    background: rgba(30, 41, 59, 0.5) !important;
+}
+html.dark .hover\:bg-surface-container-low\/50:hover {
+    background: rgba(30, 41, 59, 0.7) !important;
+}
+html.dark .bg-red-50 {
+    background: rgba(127, 29, 29, 0.2) !important;
+}
+html.dark .divide-surface-container-low > * + * {
+    border-color: rgba(51, 65, 85, 0.4) !important;
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #e0e3e5; border-radius: 10px; }
+
+/* Drop zone */
+.drop-zone { transition: all 0.3s ease; }
+.drop-zone.dragover { border-color: #fd6b26; background: rgba(253, 107, 38, 0.05); }
+
+/* Fade-in animation */
+.fade-in { animation: fadeIn 0.3s ease-in; }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Loading spinner */
+.spinner {
+    border: 3px solid #e6e8ea;
+    border-top-color: #fd6b26;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 0.8s linear infinite;
+    display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* View toggle active state */
+.view-btn.active {
+    background: white;
+    color: #05164e;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* ── Toast Notifications ────────────────────────── */
+.toast-container {
+    position: fixed;
+    top: 80px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+}
+.toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    backdrop-filter: blur(12px);
+    animation: toastIn 0.3s ease, toastOut 0.3s ease 3.7s forwards;
+    max-width: 400px;
+}
+.toast-success { background: rgba(22, 163, 74, 0.95); color: white; }
+.toast-error   { background: rgba(220, 38, 38, 0.95); color: white; }
+.toast-warning { background: rgba(234, 179, 8, 0.95); color: #1a1a1a; }
+.toast-info    { background: rgba(5, 22, 78, 0.95); color: white; }
+@keyframes toastIn { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-10px); } }
+
+/* ── Batch Modal ────────────────────────────────── */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+}
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+    max-width: 560px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+.progress-bar {
+    height: 6px;
+    background: #e6e8ea;
+    border-radius: 3px;
+    overflow: hidden;
+}
+.progress-fill {
+    height: 100%;
+    background: #fd6b26;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+/* ── Checklist ──────────────────────────────────── */
+.checklist-item input[type="checkbox"] {
+    accent-color: #fd6b26;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+.checklist-item.checked label {
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+/* ── Countdown ──────────────────────────────────── */
+.countdown-unit {
+    text-align: center;
+}
+.countdown-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    line-height: 1;
+}
+.countdown-label {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 4px;
+}
+.countdown-urgent .countdown-value {
+    color: #fd6b26;
+}
